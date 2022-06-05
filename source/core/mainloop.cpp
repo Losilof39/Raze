@@ -166,7 +166,15 @@ static void GameTicker()
 {
 	int i;
 
+
 	handleevents();
+
+
+	//====================================================
+	//
+	// [Losilof39]: change game state according to user actions
+	// 
+	//====================================================
 
 	// Todo: Migrate state changes to here instead of doing them ad-hoc
 	while (gameaction != ga_nothing)
@@ -344,6 +352,12 @@ static void GameTicker()
 	C_RunDelayedCommands();
 	updatePauseStatus();
 
+	//====================================================
+	//
+	// [Losilof39]: behave according to current game state
+	// 
+	//====================================================
+
 	switch (gamestate)
 	{
 	default:
@@ -422,6 +436,13 @@ void Display()
 	//twod->SetSize(screen->GetWidth(), screen->GetHeight());
 	twod->Begin(screen->GetWidth(), screen->GetHeight());
 	twod->ClearClipRect();
+
+	//====================================================
+	//
+	// [Losilof39]: display according to current game state
+	// 
+	//====================================================
+
 	switch (gamestate)
 	{
 	case GS_MENUSCREEN:
@@ -461,6 +482,14 @@ void Display()
 		PerformWipe(wipestart, screen->WipeEndScreen(), nextwipe, true, DrawOverlays);
 		nextwipe = wipe_None;
 	}
+
+
+	//====================================================
+	//
+	// [Losilof39]: Swap buffers
+	// 
+	//====================================================
+
 	screen->Update();
 }
 
@@ -592,41 +621,48 @@ void TryRunTics (void)
 	if (counts < 1)
 		counts = 1;
 
+
+	//====================================================
+	//
+	// [Losilof39]: Don't think this is needed
+	// 
+	//====================================================
+
 	// wait for new tics if needed
-	while (lowtic < gametic + counts)
-	{
-		NetUpdate ();
-		lowtic = INT_MAX;
-
-		for (i = 0; i < doomcom.numnodes; i++)
-			if (nodeingame[i] && nettics[i] < lowtic)
-				lowtic = nettics[i];
-
-		lowtic = lowtic * ticdup;
-
-		if (lowtic < gametic)
-			I_Error ("TryRunTics: lowtic < gametic");
-
-		// Check possible stall conditions
-		Net_CheckLastReceived (counts);
-
-		// Update time returned by I_GetTime, but only if we are stuck in this loop
-		if (lowtic < gametic + counts)
-			I_SetFrameTime();
-
-		// don't stay in here forever -- give the menu a chance to work
-		if (I_GetTime () - entertic >= 1)
-		{
-			C_Ticker ();
-			M_Ticker ();
-			// Repredict the player for new buffered movement
-#if 0
-			gi->Unpredict();
-			gi->Predict(myconnectindex);
-#endif
-			return;
-		}
-	}
+//	while (lowtic < gametic + counts)
+//	{
+//		NetUpdate ();
+//		lowtic = INT_MAX;
+//
+//		for (i = 0; i < doomcom.numnodes; i++)
+//			if (nodeingame[i] && nettics[i] < lowtic)
+//				lowtic = nettics[i];
+//
+//		lowtic = lowtic * ticdup;
+//
+//		if (lowtic < gametic)
+//			I_Error ("TryRunTics: lowtic < gametic");
+//
+//		// Check possible stall conditions
+//		Net_CheckLastReceived (counts);
+//
+//		// Update time returned by I_GetTime, but only if we are stuck in this loop
+//		if (lowtic < gametic + counts)
+//			I_SetFrameTime();
+//
+//		// don't stay in here forever -- give the menu a chance to work
+//		if (I_GetTime () - entertic >= 1)
+//		{
+//			C_Ticker ();
+//			M_Ticker ();
+//			// Repredict the player for new buffered movement
+//#if 0
+//			gi->Unpredict();
+//			gi->Predict(myconnectindex);
+//#endif
+//			return;
+//		}
+//	}
 
 	//Tic lowtic is high enough to process this gametic. Clear all possible waiting info
 	hadlate = false;
@@ -657,7 +693,17 @@ void TryRunTics (void)
 #endif
 			C_Ticker ();
 			M_Ticker ();
+
+
+			//====================================================
+			//
+			// [Losilof39]: Run game simulation for one tic (1/35th of a second)
+			// 
+			//====================================================
+
 			GameTicker();
+
+			// this is to track how many game updates there is
 			gametic++;
 
 			NetUpdate ();	// check for new console commands
@@ -703,7 +749,8 @@ void MainLoop ()
 		}
 	}
 
-	for (;;)
+	// here was a for, :)
+	while(1)
 	{
 		try
 		{

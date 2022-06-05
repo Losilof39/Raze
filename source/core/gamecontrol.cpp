@@ -964,7 +964,17 @@ int RunGame()
 	{
 		execLogfile(logfile);
 	}
+
+	//====================================================
+	//
+	// [Losilof39]: Detect on what platform the user is running,
+	//				load any config file and setup grp file of game chosen
+	// 
+	//====================================================
+
 	I_DetectOS();
+
+
 	userConfig.ProcessOptions();
 	G_LoadConfig();
 	GetGames();
@@ -1024,10 +1034,24 @@ int RunGame()
 	auto ci = DumpCPUInfo(&CPU);
 	Printf("%s", ci.GetChars());
 
+
+	//====================================================
+	//
+	// [Losilof39]: Initialize dummy framebuffer
+	// 
+	//====================================================
+
 	V_InitScreenSize();
 	V_InitScreen();
 	StartScreen = FStartupScreen::CreateInstance(8);
 	StartScreen->Progress();
+
+
+	//====================================================
+	//
+	// [Losilof39]: Load all art files
+	// 
+	//====================================================
 
 	TArray<FString> addArt;
 	for (auto& grp : usedgroups)
@@ -1042,6 +1066,13 @@ int RunGame()
 		addArt.Push(art);
 	}
 	TileFiles.AddArt(addArt);
+
+
+	//====================================================
+	//
+	// [Losilof39]: Clear all key input states
+	// 
+	//====================================================
 
 	inputState.ClearAllInput();
 
@@ -1062,7 +1093,23 @@ int RunGame()
 	GPalette.Init(MAXPALOOKUPS + 2, palindexmap);    // one slot for each translation, plus a separate one for the base palettes and the internal one
 	gi->loadPalette();
 	BuildFogTable();
+
+
+	//====================================================
+	//
+	// [Losilof39]: Updates progress bar
+	// 
+	//====================================================
+
+
 	StartScreen->Progress();
+	
+	//====================================================
+	//
+	// [Losilof39]: Load all data files
+	// 
+	//====================================================
+	
 	InitTextures();
 
 	StartScreen->Progress();
@@ -1084,9 +1131,27 @@ int RunGame()
 	gameinfo.mBackButton = "engine/graphics/m_back.png";
 	StartScreen->Progress();
 
+
+	//====================================================
+	//
+	// [Losilof39]: Setup cos/sin tables
+	// 
+	//====================================================
+
 	engineInit();
+
+
 	GC::AddMarkerFunc(MarkMap);
+
+
+	//====================================================
+	//
+	// [Losilof39]: Setup game options and init PLAYER struct
+	// 
+	//====================================================
+
 	gi->app_init();
+	
 	StartScreen->Progress();
 	G_ParseMapInfo();
 	ParseGLDefs();
@@ -1103,13 +1168,29 @@ int RunGame()
 	I_UpdateWindowTitle();
 	DeleteStartupScreen();
 
+	//====================================================
+	//
+	// [Losilof39]: Init screen framebuffer for real
+	// 
+	//====================================================
+
 	V_Init2();
+
+
 	twod->Begin(screen->GetWidth(), screen->GetHeight());
 	twod->End();
 	UpdateJoystickMenu(NULL);
 	UpdateVRModes();
 
+
+	//====================================================
+	//
+	// [Losilof39]: Setup window width and height for rendering
+	// 
+	//====================================================
+
 	setVideoMode();
+
 
 	LoadVoxelModels();
 	GLInterface.Init(screen->GetWidth());
@@ -1119,7 +1200,16 @@ int RunGame()
 
 	D_CheckNetGame();
 	UpdateGenericUI(ui_generic);
+
+	//====================================================
+	//
+	// [Losilof39]: And finally we get to the main game loop...
+	// 
+	//====================================================
+
 	MainLoop();
+
+
 	return 0; // this is never reached. MainLoop only exits via exception.
 }
 
